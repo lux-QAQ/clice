@@ -85,8 +85,42 @@ file(GLOB_RECURSE CLICE_SOURCES
 )
 add_library(clice-core "${CLICE_BUILD_TYPE}" "${CLICE_SOURCES}")
 
+
+
+# Create directory to store downloaded header files
+set(CLANG_SEMA_HEADERS_DIR "${CMAKE_BINARY_DIR}/downloaded_headers/clang/lib/Sema")
+file(MAKE_DIRECTORY "${CLANG_SEMA_HEADERS_DIR}")
+
+# Define list of header files to download
+set(CLANG_SEMA_HEADERS
+    "CoroutineStmtBuilder.h"
+    "TypeLocBuilder.h"
+    "TreeTransform.h"
+)
+
+# Set LLVM version/branch (can be modified as needed)
+set(LLVM_BRANCH "main")
+
+# Download each header file
+foreach(HEADER ${CLANG_SEMA_HEADERS})
+    set(HEADER_URL "https://raw.githubusercontent.com/llvm/llvm-project/${LLVM_BRANCH}/clang/lib/Sema/${HEADER}")
+    set(HEADER_PATH "${CLANG_SEMA_HEADERS_DIR}/${HEADER}")
+    
+    if(NOT EXISTS "${HEADER_PATH}")
+        message(STATUS "Downloading ${HEADER} from ${HEADER_URL}")
+        file(DOWNLOAD "${HEADER_URL}" "${HEADER_PATH}" STATUS DOWNLOAD_STATUS)
+        list(GET DOWNLOAD_STATUS 0 STATUS_CODE)
+        if(NOT STATUS_CODE EQUAL 0)
+            list(GET DOWNLOAD_STATUS 1 ERROR_MESSAGE)
+            message(FATAL_ERROR "Failed to download ${HEADER}: ${ERROR_MESSAGE}")
+        endif()
+    endif()
+endforeach()
+
+
+# set(LLVM_INSTALL_PATH "/path/to/llvm")
 # set llvm include and lib path
-target_include_directories(clice-core PUBLIC "${LLVM_INSTALL_PATH}/include")
+target_include_directories(clice-core PUBLIC "${LLVM_INSTALL_PATH}/include" "${CMAKE_BINARY_DIR}/downloaded_headers")
 target_link_directories(clice-core PUBLIC "${LLVM_INSTALL_PATH}/lib")
 
 if(NOT WIN32)

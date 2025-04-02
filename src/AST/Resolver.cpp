@@ -1,7 +1,7 @@
 #include "AST/Resolver.h"
 #include "Support/Format.h"
 #include "clang/Sema/Template.h"
-#include "clang/Sema/TreeTransform.h"
+#include "TreeTransform.h"
 #include "clang/Sema/TemplateDeduction.h"
 
 namespace clice {
